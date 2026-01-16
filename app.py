@@ -35,7 +35,7 @@ st.markdown("""
         color: white !important;
         font-size: 50px !important;
         font-weight: 900 !important;
-        
+        /* text-transform: uppercase;  <-- REMOVED THIS SO CAMELCASE WORKS */
         letter-spacing: 2px;
         margin: 0;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
@@ -111,7 +111,7 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* CUSTOM TABLE STYLE (FIXES DARK MODE ISSUE) */
+    /* CUSTOM TABLE STYLE */
     .styled-table {
         border-collapse: collapse;
         margin: 25px 0;
@@ -123,20 +123,20 @@ st.markdown("""
         font-family: 'Helvetica Neue', sans-serif;
     }
     .styled-table thead tr {
-        background-color: #4169E1; /* Royal Blue Header */
+        background-color: #4169E1;
         color: #ffffff !important;
         text-align: left;
     }
     .styled-table th, .styled-table td {
         padding: 12px 15px;
-        color: #000000 !important; /* Force Black Text */
+        color: #000000 !important;
     }
     .styled-table tbody tr {
         border-bottom: 1px solid #dddddd;
-        background-color: #ffffff; /* Force White Row Background */
+        background-color: #ffffff;
     }
     .styled-table tbody tr:nth-of-type(even) {
-        background-color: #f3f3f3; /* Light Grey Striping */
+        background-color: #f3f3f3;
     }
     .styled-table tbody tr:last-of-type {
         border-bottom: 2px solid #4169E1;
@@ -151,7 +151,7 @@ st.markdown("""
 # --- 3. DISPLAY HEADER ---
 st.markdown("""
 <div class="header-bar">
-    <p class="header-text">⛽ GASPAY</p>
+    <p class="header-text">⛽ GasPay</p>
     <p class="header-sub">OFFICIAL AMBASSADOR PORTAL</p>
 </div>
 """, unsafe_allow_html=True)
@@ -204,7 +204,7 @@ if not df.empty:
             st.markdown(f"<h3 style='color: #4169E1 !important; margin-top: 20px;'>👋 Results for {search_code.upper()}</h3>", unsafe_allow_html=True)
             
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("My Order No", f"{total_customers}") # Renamed as requested? Contextually "Order No" means Count here.
+            c1.metric("My Order No", f"{total_customers}")
             c2.metric("My Earnings Today", f"₦ {earned_today:,.0f}")
             c3.metric("Earnings (Week)", f"₦ {earned_week:,.0f}")
             c4.metric("Total Earnings", f"₦ {total_earned:,.0f}")
@@ -228,28 +228,24 @@ if not df.empty:
 
     st.markdown("---")
 
-    # --- 7. LEADERBOARD (HTML TABLE - FORCED COLORS) ---
+    # --- 7. LEADERBOARD (HTML TABLE) ---
     st.markdown("<h3 style='font-weight: bold; text-align: center; margin-bottom: 20px;'>📜 LEADERBOARD</h3>", unsafe_allow_html=True)
     
     # Prepare Data
     earner_df = df['Referral Code'].value_counts().reset_index()
-    earner_df.columns = ['Ambassador Name', 'Order No'] # RENAMED HERE
+    earner_df.columns = ['Ambassador Name', 'Order No']
     earner_df['Total Earnings'] = earner_df['Order No'] * payout_per_ref
     earner_df = earner_df.sort_values(by='Total Earnings', ascending=False).reset_index(drop=True)
     
-    # Add Rank Column
+    # Add Rank
     earner_df.insert(0, 'Rank', earner_df.index + 1)
     
-    # Format Money Column for Display
+    # Format Money
     earner_df['Total Earnings'] = earner_df['Total Earnings'].apply(lambda x: f"₦ {x:,.0f}")
     
-    # Convert to HTML Table
+    # Render Custom HTML Table
     table_html = earner_df.to_html(index=False, classes="styled-table", justify="left", border=0)
-    
-    # Inject HTML Table
     st.markdown(table_html, unsafe_allow_html=True)
 
 else:
     st.info("System Offline: Waiting for Google Sheet connection...")
-
-

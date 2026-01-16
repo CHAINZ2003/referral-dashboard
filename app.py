@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 # --- 1. SETUP ---
 st.set_page_config(page_title="GasPay", layout="wide", page_icon="⛽")
 
-# --- 2. MOBILE-OPTIMIZED STYLING (CSS) ---
+# --- 2. STYLING (CSS) ---
 st.markdown("""
 <style>
     /* FORCE PURE WHITE BACKGROUND */
@@ -35,7 +35,7 @@ st.markdown("""
         color: white !important;
         font-size: 50px !important;
         font-weight: 900 !important;
-        /* text-transform: uppercase;  <-- REMOVED THIS SO CAMELCASE WORKS */
+        /* Removed uppercase transform so CamelCase works */
         letter-spacing: 2px;
         margin: 0;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
@@ -156,7 +156,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- 4. LOAD DATA (NO ZEROS) ---
+# --- 4. LOAD DATA (FIXED: MERGES mk1 AND MK1) ---
 sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3CDt_ulHB-4JN80DKixskyHZhE_caf75oKICt-dirQNmBb3gH9WDNDVrkXY2Y0ja862OV1DXv3y72/pub?output=csv"
 
 @st.cache_data(ttl=10)
@@ -165,7 +165,11 @@ def load_data(url):
         df = pd.read_csv(url, usecols=['Timestamp', 'Referral Code'])
         df = df.dropna(subset=['Referral Code'])
         df['Timestamp'] = pd.to_datetime(df['Timestamp'])
-        df['Referral Code'] = df['Referral Code'].astype(str).str.strip()
+        
+        # --- CRITICAL FIX: FORCE UPPERCASE HERE ---
+        # This converts 'mk1', 'Mk1', and 'MK1' all into 'MK1' so they count as one person.
+        df['Referral Code'] = df['Referral Code'].astype(str).str.strip().str.upper()
+        
         # Remove "0" codes
         df = df[df['Referral Code'] != '0']
         return df
@@ -188,7 +192,8 @@ if not df.empty:
         check_pressed = st.button("CHECK BALANCE")
 
     if check_pressed and search_code:
-        my_data = df[df['Referral Code'].str.lower() == search_code.lower()]
+        # Search is also case-insensitive now
+        my_data = df[df['Referral Code'] == search_code.upper()]
         
         if not my_data.empty:
             today_data = my_data[my_data['Timestamp'].dt.date == current_time.date()]
@@ -231,7 +236,7 @@ if not df.empty:
     # --- 7. LEADERBOARD (HTML TABLE) ---
     st.markdown("<h3 style='font-weight: bold; text-align: center; margin-bottom: 20px;'>📜 LEADERBOARD</h3>", unsafe_allow_html=True)
     
-    # Prepare Data
+    # Aggregation (Now works correctly because of .str.upper() above)
     earner_df = df['Referral Code'].value_counts().reset_index()
     earner_df.columns = ['Ambassador Name', 'Order No']
     earner_df['Total Earnings'] = earner_df['Order No'] * payout_per_ref

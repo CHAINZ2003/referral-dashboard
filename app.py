@@ -17,12 +17,12 @@ st.markdown("""
     }
     
     /* UNIVERSAL TEXT COLOR FORCE (BLACK) */
-    h1, h2, h3, h4, h5, p, div, label, span, li, td, th {
+    h1, h2, h3, h4, h5, p, div, label, span, li {
         color: #000000 !important;
         font-family: 'Helvetica Neue', sans-serif;
     }
 
-    /* --- DESKTOP STYLES (DEFAULT) --- */
+    /* HEADER BAR */
     .header-bar {
         background: linear-gradient(90deg, #0052D4 0%, #4364F7 50%, #6FB1FC 100%);
         padding: 40px 20px;
@@ -47,7 +47,7 @@ st.markdown("""
         margin-top: 5px;
     }
 
-    /* --- MOBILE OVERRIDES --- */
+    /* MOBILE ADJUSTMENTS */
     @media (max-width: 900px) {
         .header-bar {
             padding: 20px 10px !important;
@@ -110,10 +110,36 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(65, 105, 225, 0.4);
         white-space: nowrap;
     }
-    
-    /* LEADERBOARD TABLE STYLING */
-    div[data-testid="stDataFrame"] {
+
+    /* CUSTOM TABLE STYLE (FIXES DARK MODE ISSUE) */
+    .styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 18px;
         width: 100%;
+        border-radius: 10px 10px 0 0;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+    .styled-table thead tr {
+        background-color: #4169E1; /* Royal Blue Header */
+        color: #ffffff !important;
+        text-align: left;
+    }
+    .styled-table th, .styled-table td {
+        padding: 12px 15px;
+        color: #000000 !important; /* Force Black Text */
+    }
+    .styled-table tbody tr {
+        border-bottom: 1px solid #dddddd;
+        background-color: #ffffff; /* Force White Row Background */
+    }
+    .styled-table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3; /* Light Grey Striping */
+    }
+    .styled-table tbody tr:last-of-type {
+        border-bottom: 2px solid #4169E1;
     }
 
     #MainMenu {visibility: hidden;}
@@ -125,7 +151,7 @@ st.markdown("""
 # --- 3. DISPLAY HEADER ---
 st.markdown("""
 <div class="header-bar">
-    <p class="header-text">⛽ GasPay</p>
+    <p class="header-text">⛽ GASPAY</p>
     <p class="header-sub">OFFICIAL AMBASSADOR PORTAL</p>
 </div>
 """, unsafe_allow_html=True)
@@ -153,7 +179,6 @@ if not df.empty:
     current_time = pd.Timestamp.now()
     
     # --- 5. SEARCH SECTION ---
-    # Added the Instruction Text Here:
     st.markdown("<p style='font-size: 18px; font-weight: bold; margin-bottom: 10px;'>Enter your referral code to see how much you've made</p>", unsafe_allow_html=True)
     
     col_input, col_btn = st.columns([3, 1])
@@ -179,7 +204,7 @@ if not df.empty:
             st.markdown(f"<h3 style='color: #4169E1 !important; margin-top: 20px;'>👋 Results for {search_code.upper()}</h3>", unsafe_allow_html=True)
             
             c1, c2, c3, c4 = st.columns(4)
-            c1.metric("My Total Customers", f"{total_customers}")
+            c1.metric("My Order No", f"{total_customers}") # Renamed as requested? Contextually "Order No" means Count here.
             c2.metric("My Earnings Today", f"₦ {earned_today:,.0f}")
             c3.metric("Earnings (Week)", f"₦ {earned_week:,.0f}")
             c4.metric("Total Earnings", f"₦ {total_earned:,.0f}")
@@ -203,24 +228,26 @@ if not df.empty:
 
     st.markdown("---")
 
-    # --- 7. LEADERBOARD LIST (NO CHARTS) ---
+    # --- 7. LEADERBOARD (HTML TABLE - FORCED COLORS) ---
     st.markdown("<h3 style='font-weight: bold; text-align: center; margin-bottom: 20px;'>📜 LEADERBOARD</h3>", unsafe_allow_html=True)
     
+    # Prepare Data
     earner_df = df['Referral Code'].value_counts().reset_index()
-    earner_df.columns = ['Ambassador Name', 'Customers Onboarded']
-    earner_df['Total Earnings'] = earner_df['Customers Onboarded'] * payout_per_ref
+    earner_df.columns = ['Ambassador Name', 'Order No'] # RENAMED HERE
+    earner_df['Total Earnings'] = earner_df['Order No'] * payout_per_ref
     earner_df = earner_df.sort_values(by='Total Earnings', ascending=False).reset_index(drop=True)
-    earner_df.index += 1
     
-    st.dataframe(
-        earner_df, 
-        use_container_width=True,
-        column_config={
-            "Ambassador Name": st.column_config.TextColumn("Ambassador Name"),
-            "Customers Onboarded": st.column_config.NumberColumn("Customers", format="%d"),
-            "Total Earnings": st.column_config.NumberColumn("Total Earnings", format="₦ %d")
-        }
-    )
+    # Add Rank Column
+    earner_df.insert(0, 'Rank', earner_df.index + 1)
+    
+    # Format Money Column for Display
+    earner_df['Total Earnings'] = earner_df['Total Earnings'].apply(lambda x: f"₦ {x:,.0f}")
+    
+    # Convert to HTML Table
+    table_html = earner_df.to_html(index=False, classes="styled-table", justify="left", border=0)
+    
+    # Inject HTML Table
+    st.markdown(table_html, unsafe_allow_html=True)
 
 else:
     st.info("System Offline: Waiting for Google Sheet connection...")

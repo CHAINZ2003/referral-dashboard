@@ -142,6 +142,9 @@ def load_data(url):
         df = df.dropna(subset=['Referral Code'])
         df['Timestamp'] = pd.to_datetime(df['Timestamp'])
         df['Referral Code'] = df['Referral Code'].astype(str).str.strip()
+
+        df = df[df['Referral Code'] != '0']
+        
         return df
     except Exception as e:
         return pd.DataFrame()
@@ -254,4 +257,5 @@ if not df.empty:
         st.plotly_chart(fig_line, use_container_width=True, config=config)
 
 else:
+
     st.info("System Offline: Waiting for Google Sheet connection...")

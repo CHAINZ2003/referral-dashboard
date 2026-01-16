@@ -35,7 +35,7 @@ st.markdown("""
         color: white !important;
         font-size: 50px !important;
         font-weight: 900 !important;
-        text-transform: uppercase;
+        
         letter-spacing: 2px;
         margin: 0;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
@@ -251,4 +251,5 @@ if not df.empty:
 
 else:
     st.info("System Offline: Waiting for Google Sheet connection...")
+
 

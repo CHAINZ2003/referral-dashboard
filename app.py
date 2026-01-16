@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 # --- 1. SETUP ---
-st.set_page_config(page_title="GASPAY", layout="wide", page_icon="⛽")
+st.set_page_config(page_title="GasPay", layout="wide", page_icon="⛽")
 
 # --- 2. MOBILE-OPTIMIZED STYLING (CSS) ---
 st.markdown("""
@@ -251,3 +251,4 @@ if not df.empty:
 
 else:
     st.info("System Offline: Waiting for Google Sheet connection...")
+

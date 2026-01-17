@@ -171,7 +171,7 @@ def load_data(url):
         df['Referral Code'] = df['Referral Code'].astype(str).str.strip().str.upper()
         
         # Remove "0" codes
-        df = df[df['Referral Code'] != '0']
+        df = df[~df['Referral Code'].isin(['0', '0.0', '0.00'])]
         return df
     except Exception as e:
         return pd.DataFrame()
@@ -254,3 +254,4 @@ if not df.empty:
 
 else:
     st.info("System Offline: Waiting for Google Sheet connection...")
+
